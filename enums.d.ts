@@ -144,6 +144,21 @@
     KEY_ALT_RIGHT = 0xE6,
     KEY_GUI_RIGHT = 0xE7,
     }
+
+    declare enum ButtonState
+    {
+    BUTTON_UP = 0,
+    BUTTON_DOWN = 1,
+    }
+
+
+    declare enum MouseButton
+    {
+    MOUSE_BUTTON_LEFT = 0x1,
+    MOUSE_BUTTON_RIGHT = 0x2,
+    MOUSE_BUTTON_MIDDLE = 0x4,
+    }
+
 declare namespace bluetooth {
 }
 
