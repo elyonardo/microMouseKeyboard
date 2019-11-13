@@ -12,7 +12,10 @@
         "bluetooth.ts",
         "BluetoothKeyboardService.cpp",
         "BluetoothKeyboardService.h",
+        "BluetoothMouseService.cpp",
+        "BluetoothMouseService.h",
         "USBHID_Types.h",
+        "mouse.cpp",
         "keyboard.cpp",
         "shims.d.ts",
         "enums.d.ts"
