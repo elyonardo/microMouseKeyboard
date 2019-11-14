@@ -10,13 +10,10 @@
     "files": [
         "README.md",
         "bluetooth.ts",
-        "BluetoothKeyboardService.cpp",
-        "BluetoothKeyboardService.h",
-        "BluetoothMouseService.cpp",
-        "BluetoothMouseService.h",
+        "BluetoothServices.cpp",
+        "BluetoothServices.h",
         "USBHID_Types.h",
-        "mouse.cpp",
-        "keyboard.cpp",
+        "services.cpp",
         "shims.d.ts",
         "enums.d.ts"
     ],
