@@ -81,7 +81,7 @@
 /* Where report IDs are used the first byte of 'data' will be the */
 /* report ID and 'length' will include this report ID byte. */
 
-#define MAX_HID_REPORT_SIZE (64)
+#define MAX_HID_REPORT_SIZE (116)
 
 typedef struct {
     uint32_t length;
