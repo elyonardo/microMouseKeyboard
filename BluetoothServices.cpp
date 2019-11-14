@@ -3,8 +3,7 @@
 #include "ble/GapAdvertisingData.h"
 #include "ble/GattService.h"
 #include "ble/GattCharacteristic.h"
-#include "BluetoothKeyboardService.h"
-#include "BluetoothMouseService.h"
+#include "BluetoothServices.h"
 #include "USBHID_Types.h"
 
 namespace
