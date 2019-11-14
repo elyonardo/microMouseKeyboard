@@ -1,5 +1,5 @@
 #include "pxt.h"
-#include "BluetoothKeyboardService.h"
+#include "BluetoothServices.h"
 using namespace pxt;
 /**
  * A set of functions to send keyboard commands over Bluetooth
@@ -14,6 +14,16 @@ BluetoothKeyboardService *getKeyboard()
         pKeyboardInstance = new BluetoothKeyboardService(uBit.ble);
     }
     return pKeyboardInstance;
+}
+
+BluetoothMouseService *pMouseInstance = nullptr;
+BluetoothMouseService *getMouse()
+{
+    if (pMouseInstance == nullptr)
+    {
+        pMouseInstance = new BluetoothMouseService(uBit.ble);
+    }
+    return pMouseInstance;
 }
 
 //%
@@ -39,5 +49,19 @@ void keyboardSendText(StringData *data)
     {
         pKeyboard->sendString(buf);
     }
+}
+    
+//%
+void mouseSpeed(int x, int y, int wheel)
+{
+    BluetoothMouseService *pMouse = getMouse();
+    pMouse->setSpeed(x, y, wheel);
+}
+
+//%
+void mouseButton(MouseButton button, ButtonState state)
+{
+    BluetoothMouseService *pMouse = getMouse();
+    pMouse->setButton(button, state);
 }
 }
