@@ -23,7 +23,7 @@ static const uint8_t REPORT_MAP[] = {
     COLLECTION(1), 0x01, // Application
     USAGE(1), 0x01,      // Pointer
     COLLECTION(1), 0x00, // Physical
-    REPORT(1),  0x01,    // Report ID (1)
+    REPORT_ID(1),  0x01,    // Report ID (1)
     USAGE_PAGE(1), 0x09, // Buttons
     USAGE_MINIMUM(1), 0x01,
     USAGE_MAXIMUM(1), 0x03,
@@ -48,7 +48,7 @@ static const uint8_t REPORT_MAP[] = {
     END_COLLECTION(0),
     USAGE(1), 0x06,      // Keyboard
     COLLECTION(1), 0x01, // Application
-    REPORT(1),  0x02,    // Report ID (2)
+    REPORT_ID(1),  0x02,    // Report ID (2)
     USAGE_PAGE(1), 0x07, //   Kbrd/Keypad
     USAGE_MINIMUM(1), 0xE0,
     USAGE_MAXIMUM(1), 0xE7,
