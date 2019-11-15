@@ -1,7 +1,7 @@
 {
-    "name": "bluetooth-keyboard",
+    "name": "bluetooth-HID",
     "version": "0.0.7",
-    "description": "A Bluetooth Keyboard service",
+    "description": "2 Bluetooth services",
     "license": "MIT",
     "dependencies": {
         "core": "*",
@@ -18,7 +18,7 @@
         "enums.d.ts"
     ],
     "testFiles": [
-        "tests.ts"
+        "main.ts"
     ],
     "public": true
 }
