@@ -88,13 +88,15 @@ static const uint8_t MouseEmptyInputReportData[] = {0, 0, 0, 0};
  * Constructor
  * @param dev BLE device
  */
-BluetoothKeyboardService::BluetoothKeyboardService(BLEDevice *dev) : ble(*dev)
+BluetoothServices::BluetoothServices(BLEDevice *dev) : ble(*dev)
 {
-    startService();
-    startAdvertise();
+    startKeyboardService();
+    startKeyboardAdvertise();
+    startMouseService();
+    startMouseAdvertise();
 }
 
-void BluetoothKeyboardService::startService()
+void BluetoothServices::startKeyboardService()
 {
     memset(inputReportData, 0, sizeof(inputReportData));
     connected = false;
@@ -135,17 +137,17 @@ void BluetoothKeyboardService::startService()
         hidControlPointCharacteristic,
         inputReportCharacteristic};
 
-    ble.gap().onConnection(this, &BluetoothKeyboardService::onConnection);
-    ble.gap().onDisconnection(this, &BluetoothKeyboardService::onDisconnection);
+    ble.gap().onConnection(this, &BluetoothServices::onKeyboardConnection);
+    ble.gap().onDisconnection(this, &BluetoothServices::onKeyboardDisconnection);
 
     GattService keyboardService(GattService::UUID_HUMAN_INTERFACE_DEVICE_SERVICE, keyboardCharacteristics, sizeof(keyboardCharacteristics) / sizeof(GattCharacteristic *));
 
     ble.gattServer().addService(keyboardService);
 
-    ble.gattServer().onDataSent(this, &BluetoothKeyboardService::onDataSent);
+    ble.gattServer().onDataSent(this, &BluetoothServices::onKeyboardDataSent);
 }
 
-void BluetoothKeyboardService::startAdvertise()
+void BluetoothServices::startKeyboardAdvertise()
 {
     ble.gap().stopAdvertising();
     ble.gap().clearAdvertisingPayload();
@@ -181,17 +183,17 @@ void BluetoothKeyboardService::startAdvertise()
     ble.gap().startAdvertising();
 }
 
-void BluetoothKeyboardService::startReportTicker()
+void BluetoothServices::startKeyBoardReportTicker()
 {
     if (reportTickerIsActive)
     {
         return;
     }
-    reportTicker.attach_us(this, &BluetoothKeyboardService::sendCallback, 24000);
+    reportTicker.attach_us(this, &BluetoothServices::sendKeyboardCallback, 24000);
     reportTickerIsActive = true;
 }
 
-void BluetoothKeyboardService::stopReportTicker()
+void BluetoothServices::stopKeyboardReportTicker()
 {
     if (!reportTickerIsActive)
     {
@@ -201,12 +203,12 @@ void BluetoothKeyboardService::stopReportTicker()
     reportTickerIsActive = false;
 }
 
-void BluetoothKeyboardService::onDataSent(unsigned count)
+void BluetoothServices::onDataKeyboardSent(unsigned count)
 {
-    startReportTicker();
+    startKeyboardReportTicker();
 }
 
-void BluetoothKeyboardService::onConnection(const Gap::ConnectionCallbackParams_t *params)
+void BluetoothServices::onKeyboardConnection(const Gap::ConnectionCallbackParams_t *params)
 {
     ble.gap().stopAdvertising();
     connected = true;
@@ -215,7 +217,7 @@ void BluetoothKeyboardService::onConnection(const Gap::ConnectionCallbackParams_
     previousKeyCode = 0;
 }
 
-void BluetoothKeyboardService::onDisconnection(const Gap::DisconnectionCallbackParams_t *params)
+void BluetoothServices::onKeyboardDisconnection(const Gap::DisconnectionCallbackParams_t *params)
 {
     connected = false;
     stopReportTicker();
@@ -227,7 +229,7 @@ void BluetoothKeyboardService::onDisconnection(const Gap::DisconnectionCallbackP
  * @param character ASCII character code
  * @return modifier key combination
  */
-Modifier BluetoothKeyboardService::getModifier(uint8_t character)
+Modifier BluetoothServices::getModifier(uint8_t character)
 {
     switch (character)
     {
@@ -289,7 +291,7 @@ Modifier BluetoothKeyboardService::getModifier(uint8_t character)
  * @param character ASCII character code
  * @return key code of US Keyboard
  */
-uint8_t BluetoothKeyboardService::getKeyCode(uint8_t character)
+uint8_t BluetoothServices::getKeyCode(uint8_t character)
 {
     switch (character)
     {
@@ -452,7 +454,7 @@ uint8_t BluetoothKeyboardService::getKeyCode(uint8_t character)
  * @param modifier modifier key combination
  * @param keyCode key code of US Keyboard
  */
-void BluetoothKeyboardService::sendKeyDownMessage(Modifier modifier, uint8_t keyCode)
+void BluetoothServices::sendKeyDownMessage(Modifier modifier, uint8_t keyCode)
 {
     if (connected)
     {
@@ -472,7 +474,7 @@ void BluetoothKeyboardService::sendKeyDownMessage(Modifier modifier, uint8_t key
 /**
  * Send a BLE Keyboard key-up message
  */
-void BluetoothKeyboardService::sendKeyUpMessage()
+void BluetoothServices::sendKeyUpMessage()
 {
     if (connected)
     {
@@ -480,7 +482,7 @@ void BluetoothKeyboardService::sendKeyUpMessage()
     }
 }
 
-void BluetoothKeyboardService::sendCallback()
+void BluetoothServices::sendKeyboardCallback()
 {
     if (connected)
     {
@@ -524,20 +526,20 @@ void BluetoothKeyboardService::sendCallback()
  * Send a text with BLE Keyboard
  * @param text ASCII string
  */
-void BluetoothKeyboardService::sendString(ManagedString text)
+void BluetoothServices::sendKeyboardString(ManagedString text)
 {
     if (connected)
     {
         keyBuffer = keyBuffer + text;
         // send first report
-        sendCallback();
+        sendKeyboardCallback();
     }
 }
 
 /**
  * Send a BLE Keyboard key-up/down message
  */
-void BluetoothKeyboardService::sendKeyCode(Modifier modifier, uint8_t keyCode)
+void BluetoothServices::sendKeyCode(Modifier modifier, uint8_t keyCode)
 {
     if (connected)
     {
@@ -549,14 +551,7 @@ void BluetoothKeyboardService::sendKeyCode(Modifier modifier, uint8_t keyCode)
 }
 
 /*----------------------------------------------------MOUSE---------------------------------------------*/
-BluetoothMouseService::BluetoothMouseService(BLEDevice *dev) : ble(*dev)
-{
-
-    startService();
-    startAdvertise();
-}
-
-void BluetoothMouseService::startService()
+void BluetoothServices::startMouseService()
 {
     memset(inputReportData, 0, sizeof(inputReportData));
     connected = false;
@@ -599,17 +594,17 @@ void BluetoothMouseService::startService()
         hidControlPointCharacteristic,
         inputReportCharacteristic};
 
-    ble.gap().onConnection(this, &BluetoothMouseService::onConnection);
-    ble.gap().onDisconnection(this, &BluetoothMouseService::onDisconnection);
+    ble.gap().onConnection(this, &BluetoothServices::onMouseConnection);
+    ble.gap().onDisconnection(this, &BluetoothServices::onMouseDisconnection);
 
     GattService mouseService(GattService::UUID_HUMAN_INTERFACE_DEVICE_SERVICE, mouseCharacteristics, sizeof(mouseCharacteristics) / sizeof(GattCharacteristic *));
 
     ble.gattServer().addService(mouseService);
 
-    ble.gattServer().onDataSent(this, &BluetoothMouseService::onDataSent);
+    ble.gattServer().onDataSent(this, &BluetoothServices::onMouseDataSent);
 }
 
-void BluetoothMouseService::startAdvertise()
+void BluetoothServices::startMouseAdvertise()
 {
     ble.gap().stopAdvertising();
     ble.gap().clearAdvertisingPayload();
@@ -645,17 +640,17 @@ void BluetoothMouseService::startAdvertise()
     ble.gap().startAdvertising();
 }
 
-void BluetoothMouseService::startReportTicker()
+void BluetoothServices::startMouseReportTicker()
 {
     if (reportTickerIsActive)
     {
         return;
     }
-    reportTicker.attach_us(this, &BluetoothMouseService::sendCallback, 24000);
+    reportTicker.attach_us(this, &BluetoothServices::sendMouseCallback, 24000);
     reportTickerIsActive = true;
 }
 
-void BluetoothMouseService::stopReportTicker()
+void BluetoothServices::stopMouseReportTicker()
 {
     if (!reportTickerIsActive)
     {
@@ -665,22 +660,22 @@ void BluetoothMouseService::stopReportTicker()
     reportTickerIsActive = false;
 }
 
-void BluetoothMouseService::onDataSent(unsigned count)
+void BluetoothServices::onMouseDataSent(unsigned count)
 {
-    startReportTicker();
+    startMouseReportTicker();
 }
 
-void BluetoothMouseService::onConnection(const Gap::ConnectionCallbackParams_t *params)
+void BluetoothServices::onMouseConnection(const Gap::ConnectionCallbackParams_t *params)
 {
     ble.gap().stopAdvertising();
     connected = true;
 }
 
-void BluetoothMouseService::onDisconnection(const Gap::DisconnectionCallbackParams_t *params)
+void BluetoothServices::onMouseDisconnection(const Gap::DisconnectionCallbackParams_t *params)
 {
     connected = false;
-    stopReportTicker();
-    startAdvertise();
+    stopMouseReportTicker();
+    startMouseAdvertise();
 }
 
 /**
@@ -692,19 +687,19 @@ void BluetoothMouseService::onDisconnection(const Gap::DisconnectionCallbackPara
  * @param y Speed on vertical axis [-127, 127]
  * @param wheel Scroll speed [-127, 127]
  */
-void BluetoothMouseService::setSpeed(int8_t x, int8_t y, int8_t wheel)
+void BluetoothServices::setSpeed(int8_t x, int8_t y, int8_t wheel)
 {
     speed[0] = x;
     speed[1] = y;
     speed[2] = wheel;
 
-    startReportTicker();
+    startMouseReportTicker();
 }
 
 /**
  * Toggle the state of one button
  */
-void BluetoothMouseService::setButton(MouseButton button, ButtonState state)
+void BluetoothServices::setButton(MouseButton button, ButtonState state)
 {
     if (state == BUTTON_UP)
     {
@@ -715,10 +710,10 @@ void BluetoothMouseService::setButton(MouseButton button, ButtonState state)
         buttonsState |= button;
     }
 
-    startReportTicker();
+    startMouseReportTicker();
 }
 
-void BluetoothMouseService::sendCallback()
+void BluetoothServices::sendMouseCallback()
 {
     if (!connected)
     {
