@@ -251,8 +251,8 @@ class BluetoothServices
 
     uint8_t protocolMode;
     uint8_t controlPointCommand;
-    uint8_t inputReportKeyboardData[8];
-    uint8_t inputReportMouseData[4];
+    uint8_t inputReportData[8];
+    //uint8_t inputReportMouseData[4];
 
     uint8_t buttonsState;
     uint8_t speed[3];    
@@ -293,7 +293,6 @@ class BluetoothServices
     
     void startKeyboardService();
     void startMouseService();
-    
 };
 
 #endif /* __BLESERVICES_H__ */
