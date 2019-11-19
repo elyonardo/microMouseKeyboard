@@ -98,7 +98,7 @@ BluetoothServices::BluetoothServices(BLEDevice *dev) : ble(*dev)
 
 void BluetoothServices::startKeyboardService()
 {
-    memset(inputReportData, 0, sizeof(inputReportData));
+    memset(inputReportKeyboardData, 0, sizeof(inputReportKeyboardData));
     connected = false;
     protocolMode = REPORT_PROTOCOL;
     reportTickerIsActive = false;
@@ -108,7 +108,7 @@ void BluetoothServices::startKeyboardService()
                                                         GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
 
     inputReportCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_CHAR,
-                                                       inputReportData, sizeof(inputReportData), sizeof(inputReportData),
+                                                       inputReportKeyboardData, sizeof(inputReportKeyboardData), sizeof(inputReportKeyboardData),
                                                        GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY |
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE);
@@ -458,16 +458,16 @@ void BluetoothServices::sendKeyDownMessage(Modifier modifier, uint8_t keyCode)
 {
     if (connected)
     {
-        inputReportData[0] = modifier;
-        inputReportData[1] = 0;
-        inputReportData[2] = keyCode;
-        inputReportData[3] = 0;
-        inputReportData[4] = 0;
-        inputReportData[5] = 0;
-        inputReportData[6] = 0;
-        inputReportData[7] = 0;
+        inputReportKeyboardData[0] = modifier;
+        inputReportKeyboardData[1] = 0;
+        inputReportKeyboardData[2] = keyCode;
+        inputReportKeyboardData[3] = 0;
+        inputReportKeyboardData[4] = 0;
+        inputReportKeyboardData[5] = 0;
+        inputReportKeyboardData[6] = 0;
+        inputReportKeyboardData[7] = 0;
 
-        ble.gattServer().write(inputReportCharacteristic->getValueHandle(), inputReportData, 8);
+        ble.gattServer().write(inputReportCharacteristic->getValueHandle(), inputReportKeyboardData, 8);
     }
 }
 
@@ -553,7 +553,7 @@ void BluetoothServices::sendKeyCode(Modifier modifier, uint8_t keyCode)
 /*----------------------------------------------------MOUSE---------------------------------------------*/
 void BluetoothServices::startMouseService()
 {
-    memset(inputReportData, 0, sizeof(inputReportData));
+    memset(inputReportMouseData, 0, sizeof(inputReportMouseData));
     connected = false;
     protocolMode = REPORT_PROTOCOL;
     reportTickerIsActive = false;
@@ -563,7 +563,7 @@ void BluetoothServices::startMouseService()
                                                         GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
 
     inputReportCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_CHAR,
-                                                       inputReportData, sizeof(inputReportData), sizeof(inputReportData),
+                                                       inputReportMouseData, sizeof(inputReportMouseData), sizeof(inputReportMouseData),
                                                        GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY |
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE);
@@ -721,10 +721,10 @@ void BluetoothServices::sendMouseCallback()
     }
 
     if (
-        inputReportData[0] == 0 &&
-        inputReportData[1] == 0 &&
-        inputReportData[2] == 0 &&
-        inputReportData[3] == 0 &&
+        inputReportMouseData[0] == 0 &&
+        inputReportMouseData[1] == 0 &&
+        inputReportMouseData[2] == 0 &&
+        inputReportMouseData[3] == 0 &&
         (buttonsState & 0x7) == 0 &&
         speed[0] == 0 &&
         speed[1] == 0 &&
@@ -734,10 +734,10 @@ void BluetoothServices::sendMouseCallback()
         return;
     }
 
-    inputReportData[0] = buttonsState & 0x7;
-    inputReportData[1] = speed[0];
-    inputReportData[2] = speed[1];
-    inputReportData[3] = speed[2];
+    inputReportMouseData[0] = buttonsState & 0x7;
+    inputReportMouseData[1] = speed[0];
+    inputReportMouseData[2] = speed[1];
+    inputReportMouseData[3] = speed[2];
 
-    ble.gattServer().write(inputReportCharacteristic->getValueHandle(), inputReportData, 4);
+    ble.gattServer().write(inputReportCharacteristic->getValueHandle(), inputReportMouseData, 4);
 }
