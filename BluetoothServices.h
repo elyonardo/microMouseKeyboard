@@ -1,5 +1,5 @@
-#ifndef __BLEKEYBOARD_H__
-#define __BLEKEYBOARD_H__
+#ifndef __BLESERVICES_H__
+#define __BLESERVICES_H__
 
 #include "ble/BLE.h"
 #include "ble/GattAttribute.h"
@@ -149,6 +149,19 @@ enum KeyCode
     KEY_GUI_RIGHT = 0xE7,
 };
 
+enum ButtonState
+{
+    BUTTON_UP,
+    BUTTON_DOWN
+};
+
+enum MouseButton
+{
+    MOUSE_BUTTON_LEFT = 0x1,
+    MOUSE_BUTTON_RIGHT = 0x2,
+    MOUSE_BUTTON_MIDDLE = 0x4,
+};
+
 #define INPUT_REPORT 0x1
 #define OUTPUT_REPORT 0x2
 #define FEATURE_REPORT 0x3
@@ -165,14 +178,14 @@ typedef struct
 /** 
  * A class to communicate a BLE Keyboard device
  */
-class BluetoothKeyboardService
+class BluetoothServices
 {
   public:
     /**
      * Constructor
      * @param dev BLE device
      */
-    BluetoothKeyboardService(BLEDevice *device);
+    BluetoothServices(BLEDevice *device);
 
     /**
      * Send a BLE Keyboard key-down message
@@ -212,96 +225,7 @@ class BluetoothKeyboardService
      * @return modifier key combination
      */
     Modifier getModifier(uint8_t character);
-
-  private:
-    BLEDevice &ble;
-    bool connected;
-
-    Ticker reportTicker;
-    bool reportTickerIsActive;
-
-    uint8_t protocolMode;
-    uint8_t controlPointCommand;
-    uint8_t inputReportData[8];
-
-    ManagedString keyBuffer;
-    Modifier previousModifier;
-    uint8_t previousKeyCode;
-    bool sendKeyUp = false;
-
-    void onConnection(const Gap::ConnectionCallbackParams_t *params);
-    void onDisconnection(const Gap::DisconnectionCallbackParams_t *params);
-
-    GattCharacteristic *protocolModeCharacteristic;
-    GattCharacteristic *inputReportCharacteristic;
-    GattCharacteristic *reportMapCharacteristic;
-    GattCharacteristic *hidInformationCharacteristic;
-    GattCharacteristic *hidControlPointCharacteristic;
-
-    GattAttribute *inputReportReferenceDescriptor;
-    GattAttribute *inputReportDescriptors[1];
-
-    void startReportTicker();
-
-    void stopReportTicker();
-
-    void onDataSent(unsigned count);
-
-    void sendCallback();
-
-    void startAdvertise();
-
-    void startService();
-};
-
-#endif /* __BLEKEYBOARD_H__ */
-
-#ifndef __BLEMOUSE_H__
-#define __BLEMOUSE_H__
-
-#include "ble/BLE.h"
-#include "ble/GattAttribute.h"
-
-#define BLE_UUID_DESCRIPTOR_REPORT_REFERENCE 0x2908
-
-enum ButtonState
-{
-    BUTTON_UP,
-    BUTTON_DOWN
-};
-
-enum MouseButton
-{
-    MOUSE_BUTTON_LEFT = 0x1,
-    MOUSE_BUTTON_RIGHT = 0x2,
-    MOUSE_BUTTON_MIDDLE = 0x4,
-};
-
-#define INPUT_REPORT 0x1
-#define OUTPUT_REPORT 0x2
-#define FEATURE_REPORT 0x3
-
-#define BOOT_PROTOCOL 0x0
-#define REPORT_PROTOCOL 0x1
-
-typedef struct
-{
-    uint8_t ID;
-    uint8_t type;
-} report_reference_t;
-
-/** 
- * A class to communicate a BLE Mouse device
- */
-class BluetoothMouseService
-{
-  public:
-    /**
-     * Constructor
-     * @param dev BLE device
-     */
-    BluetoothMouseService(BLEDevice *device);
-
+    
     /**
      * Set X, Y, wheel speed of the mouse. Parameters are sticky and will be
      * transmitted on every tick. Users should therefore reset them to 0 when
@@ -327,13 +251,21 @@ class BluetoothMouseService
 
     uint8_t protocolMode;
     uint8_t controlPointCommand;
-    uint8_t inputReportData[4];
+    uint8_t inputReportKeyboardData[8];
+    uint8_t inputReportMouseData[4];
 
     uint8_t buttonsState;
-    uint8_t speed[3];
+    uint8_t speed[3];    
 
-    void onConnection(const Gap::ConnectionCallbackParams_t *params);
-    void onDisconnection(const Gap::DisconnectionCallbackParams_t *params);
+    ManagedString keyBuffer;
+    Modifier previousModifier;
+    uint8_t previousKeyCode;
+    bool sendKeyUp = false;
+
+    void onKeyboardConnection(const Gap::ConnectionCallbackParams_t *params);
+    void onKeyboardDisconnection(const Gap::DisconnectionCallbackParams_t *params);
+    void onMouseConnection(const Gap::ConnectionCallbackParams_t *params);
+    void onMouseDisconnection(const Gap::DisconnectionCallbackParams_t *params);    
 
     GattCharacteristic *protocolModeCharacteristic;
     GattCharacteristic *inputReportCharacteristic;
@@ -344,17 +276,24 @@ class BluetoothMouseService
     GattAttribute *inputReportReferenceDescriptor;
     GattAttribute *inputReportDescriptors[1];
 
-    void startReportTicker();
-
-    void stopReportTicker();
-
-    void onDataSent(unsigned count);
-
-    void sendCallback();
-
-    void startAdvertise();
-
-    void startService();
+    void startKeyboardReportTicker();
+    void startMouseReportTicker();
+    
+    void stopKeyboardReportTicker();
+    void stopMouseReportTicker();
+    
+    void onKeyboardDataSent(unsigned count);
+    void onMouseDataSent(unsigned count);
+    
+    void sendKeyboardCallback();
+    void sendMouseCallback();
+    
+    void startKeyboardAdvertise();
+    void startMouseAdvertise();
+    
+    void startKeyboardService();
+    void startMouseService();
+    
 };
 
-#endif /* __BLEMOUSE_H__ */
+#endif /* __BLESERVICES_H__ */
