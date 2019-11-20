@@ -517,7 +517,7 @@ void BluetoothServices::sendKeyboardCallback()
         {
             sendKeyUpMessage();
             sendKeyUp = false;
-            stopReportTicker();
+            stopKeyboardReportTicker();
         }
     }
 }
@@ -730,7 +730,7 @@ void BluetoothServices::sendMouseCallback()
         speed[1] == 0 &&
         speed[2] == 0)
     {
-        stopReportTicker();
+        stopMouseReportTicker();
         return;
     }
 
