@@ -267,11 +267,16 @@ class BluetoothServices
     void onMouseConnection(const Gap::ConnectionCallbackParams_t *params);
     void onMouseDisconnection(const Gap::DisconnectionCallbackParams_t *params);    
 
-    GattCharacteristic *protocolModeCharacteristic;
-    GattCharacteristic *inputReportCharacteristic;
-    GattCharacteristic *reportMapCharacteristic;
-    GattCharacteristic *hidInformationCharacteristic;
-    GattCharacteristic *hidControlPointCharacteristic;
+    GattCharacteristic *keyProtocolModeCharacteristic;
+    GattCharacteristic *mouseProtocolModeCharacteristic;
+    GattCharacteristic *keyInputReportCharacteristic;
+    GattCharacteristic *mouseInputReportCharacteristic;
+    GattCharacteristic *keyReportMapCharacteristic;
+    GattCharacteristic *mouseReportMapCharacteristic;
+    GattCharacteristic *keyHidInformationCharacteristic;
+    GattCharacteristic *mouseHidInformationCharacteristic;
+    GattCharacteristic *keyHidControlPointCharacteristic;
+    GattCharacteristic *mouseHidControlPointCharacteristic;
 
     GattAttribute *inputReportReferenceDescriptor;
     GattAttribute *inputReportDescriptors[1];
