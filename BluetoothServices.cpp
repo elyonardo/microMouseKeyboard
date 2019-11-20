@@ -220,7 +220,7 @@ void BluetoothServices::onKeyboardConnection(const Gap::ConnectionCallbackParams
 void BluetoothServices::onKeyboardDisconnection(const Gap::DisconnectionCallbackParams_t *params)
 {
     connected = false;
-    stopReportTicker();
+    stopKeyboardReportTicker();
     startKeyboardAdvertise();
 }
 
