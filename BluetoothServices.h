@@ -244,12 +244,15 @@ class BluetoothServices
 
   private:
     BLEDevice &ble;
-    bool connected;
+    bool keyConnected;
+    bool mouseConnected;
 
     Ticker reportTicker;
-    bool reportTickerIsActive;
+    bool keyReportTickerIsActive;
+    bool mouseReportTickerIsActive;
 
-    uint8_t protocolMode;
+    uint8_t keyProtocolMode;
+    uint8_t mouseProtocolMode;
     uint8_t controlPointCommand;
     uint8_t inputReportData[8];
     //uint8_t inputReportMouseData[4];
@@ -293,8 +296,8 @@ class BluetoothServices
     void sendKeyboardCallback();
     void sendMouseCallback();
     
-    void startKeyboardAdvertise();
-    void startMouseAdvertise();
+    void startAdvertise();
+    //void startMouseAdvertise();
     
     void startKeyboardService();
     void startMouseService();
