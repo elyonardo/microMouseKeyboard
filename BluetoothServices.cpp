@@ -98,44 +98,44 @@ BluetoothServices::BluetoothServices(BLEDevice *dev) : ble(*dev)
 
 void BluetoothServices::startKeyboardService()
 {
-    memset(inputReportKeyboardData, 0, sizeof(inputReportKeyboardData));
+    memset(inputReportData, 0, sizeof(inputReportData));
     connected = false;
     protocolMode = REPORT_PROTOCOL;
     reportTickerIsActive = false;
 
-    protocolModeCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_PROTOCOL_MODE_CHAR,
+    keyProtocolModeCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_PROTOCOL_MODE_CHAR,
                                                         &protocolMode, 1, 1,
                                                         GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
 
-    inputReportCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_CHAR,
-                                                       inputReportKeyboardData, sizeof(inputReportKeyboardData), sizeof(inputReportKeyboardData),
+    keyInputReportCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_CHAR,
+                                                       inputReportData, sizeof(inputReportData), sizeof(inputReportData),
                                                        GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY |
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE);
 
-    reportMapCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_MAP_CHAR,
+    keyReportMapCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_MAP_CHAR,
                                                      const_cast<uint8_t *>(REPORT_MAP), sizeof(REPORT_MAP), sizeof(REPORT_MAP),
                                                      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
 
-    hidInformationCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_INFORMATION_CHAR,
+    keyHidInformationCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_INFORMATION_CHAR,
                                                           const_cast<uint8_t *>(RESPONSE_HID_INFORMATION), sizeof(RESPONSE_HID_INFORMATION), sizeof(RESPONSE_HID_INFORMATION),
                                                           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
 
-    hidControlPointCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_CONTROL_POINT_CHAR,
+    keyHidControlPointCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_CONTROL_POINT_CHAR,
                                                            &controlPointCommand, 1, 1,
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
 
-    SecurityManager::SecurityMode_t securityMode = SecurityManager::SECURITY_MODE_ENCRYPTION_NO_MITM;
-    protocolModeCharacteristic->requireSecurity(securityMode);
-    inputReportCharacteristic->requireSecurity(securityMode);
-    reportMapCharacteristic->requireSecurity(securityMode);
+    SecurityManager::SecurityMode_t keySecurityMode = SecurityManager::SECURITY_MODE_ENCRYPTION_NO_MITM;
+    keyProtocolModeCharacteristic->requireSecurity(keySecurityMode);
+    keyInputReportCharacteristic->requireSecurity(keySecurityMode);
+    keyReportMapCharacteristic->requireSecurity(keySecurityMode);
 
     GattCharacteristic *keyboardCharacteristics[]{
-        hidInformationCharacteristic,
-        reportMapCharacteristic,
-        protocolModeCharacteristic,
-        hidControlPointCharacteristic,
-        inputReportCharacteristic};
+        keyHidInformationCharacteristic,
+        keyReportMapCharacteristic,
+        keyProtocolModeCharacteristic,
+        keyHidControlPointCharacteristic,
+        keyInputReportCharacteristic};
 
     ble.gap().onConnection(this, &BluetoothServices::onKeyboardConnection);
     ble.gap().onDisconnection(this, &BluetoothServices::onKeyboardDisconnection);
@@ -458,16 +458,16 @@ void BluetoothServices::sendKeyDownMessage(Modifier modifier, uint8_t keyCode)
 {
     if (connected)
     {
-        inputReportKeyboardData[0] = modifier;
-        inputReportKeyboardData[1] = 0;
-        inputReportKeyboardData[2] = keyCode;
-        inputReportKeyboardData[3] = 0;
-        inputReportKeyboardData[4] = 0;
-        inputReportKeyboardData[5] = 0;
-        inputReportKeyboardData[6] = 0;
-        inputReportKeyboardData[7] = 0;
+        inputReportData[0] = modifier;
+        inputReportData[1] = 0;
+        inputReportData[2] = keyCode;
+        inputReportData[3] = 0;
+        inputReportData[4] = 0;
+        inputReportData[5] = 0;
+        inputReportData[6] = 0;
+        inputReportData[7] = 0;
 
-        ble.gattServer().write(inputReportCharacteristic->getValueHandle(), inputReportKeyboardData, 8);
+        ble.gattServer().write(keyInputReportCharacteristic->getValueHandle(), inputReportData, 8);
     }
 }
 
@@ -478,7 +478,7 @@ void BluetoothServices::sendKeyUpMessage()
 {
     if (connected)
     {
-        ble.gattServer().write(inputReportCharacteristic->getValueHandle(), KeyEmptyInputReportData, 8);
+        ble.gattServer().write(keyInputReportCharacteristic->getValueHandle(), KeyEmptyInputReportData, 8);
     }
 }
 
@@ -553,46 +553,46 @@ void BluetoothServices::sendKeyCode(Modifier modifier, uint8_t keyCode)
 /*----------------------------------------------------MOUSE---------------------------------------------*/
 void BluetoothServices::startMouseService()
 {
-    memset(inputReportMouseData, 0, sizeof(inputReportMouseData));
+    memset(inputReportData, 0, 4); //sizeof(inputReportData)
     connected = false;
     protocolMode = REPORT_PROTOCOL;
     reportTickerIsActive = false;
 
-    protocolModeCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_PROTOCOL_MODE_CHAR,
+    mouseProtocolModeCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_PROTOCOL_MODE_CHAR,
                                                         &protocolMode, 1, 1,
                                                         GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
 
-    inputReportCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_CHAR,
-                                                       inputReportMouseData, sizeof(inputReportMouseData), sizeof(inputReportMouseData),
+    mouseInputReportCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_CHAR,
+                                                       inputReportData, sizeof(inputReportData), sizeof(inputReportData),
                                                        GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY |
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE);
 
-    reportMapCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_MAP_CHAR,
+    mouseReportMapCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_MAP_CHAR,
                                                      const_cast<uint8_t *>(REPORT_MAP), sizeof(REPORT_MAP), sizeof(REPORT_MAP),
                                                      GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
 
-    hidInformationCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_INFORMATION_CHAR,
+    mouseHidInformationCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_INFORMATION_CHAR,
                                                           const_cast<uint8_t *>(RESPONSE_HID_INFORMATION), sizeof(RESPONSE_HID_INFORMATION), sizeof(RESPONSE_HID_INFORMATION),
                                                           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
 
-    hidControlPointCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_CONTROL_POINT_CHAR,
+    mouseHidControlPointCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_CONTROL_POINT_CHAR,
                                                            &controlPointCommand, 1, 1,
                                                            GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
 
-    SecurityManager::SecurityMode_t securityMode = SecurityManager::SECURITY_MODE_ENCRYPTION_NO_MITM;
-    protocolModeCharacteristic->requireSecurity(securityMode);
-    inputReportCharacteristic->requireSecurity(securityMode);
-    reportMapCharacteristic->requireSecurity(securityMode);
-    hidInformationCharacteristic->requireSecurity(securityMode);
-    hidControlPointCharacteristic->requireSecurity(securityMode);
+    SecurityManager::SecurityMode_t mouseSecurityMode = SecurityManager::SECURITY_MODE_ENCRYPTION_NO_MITM;
+    mouseProtocolModeCharacteristic->requireSecurity(mouseSecurityMode);
+    mouseInputReportCharacteristic->requireSecurity(mouseSecurityMode);
+    mouseReportMapCharacteristic->requireSecurity(mouseSecurityMode);
+    mouseHidInformationCharacteristic->requireSecurity(mouseSecurityMode);
+    mouseHidControlPointCharacteristic->requireSecurity(mouseSecurityMode);
 
     GattCharacteristic *mouseCharacteristics[]{
-        hidInformationCharacteristic,
-        reportMapCharacteristic,
-        protocolModeCharacteristic,
-        hidControlPointCharacteristic,
-        inputReportCharacteristic};
+        mouseHidInformationCharacteristic,
+        mouseReportMapCharacteristic,
+        mouseProtocolModeCharacteristic,
+        mouseHidControlPointCharacteristic,
+        mouseInputReportCharacteristic};
 
     ble.gap().onConnection(this, &BluetoothServices::onMouseConnection);
     ble.gap().onDisconnection(this, &BluetoothServices::onMouseDisconnection);
@@ -721,10 +721,10 @@ void BluetoothServices::sendMouseCallback()
     }
 
     if (
-        inputReportMouseData[0] == 0 &&
-        inputReportMouseData[1] == 0 &&
-        inputReportMouseData[2] == 0 &&
-        inputReportMouseData[3] == 0 &&
+        inputReportData[0] == 0 &&
+        inputReportData[1] == 0 &&
+        inputReportData[2] == 0 &&
+        inputReportData[3] == 0 &&
         (buttonsState & 0x7) == 0 &&
         speed[0] == 0 &&
         speed[1] == 0 &&
@@ -734,10 +734,10 @@ void BluetoothServices::sendMouseCallback()
         return;
     }
 
-    inputReportMouseData[0] = buttonsState & 0x7;
-    inputReportMouseData[1] = speed[0];
-    inputReportMouseData[2] = speed[1];
-    inputReportMouseData[3] = speed[2];
+    inputReportData[0] = buttonsState & 0x7;
+    inputReportData[1] = speed[0];
+    inputReportData[2] = speed[1];
+    inputReportData[3] = speed[2];
 
-    ble.gattServer().write(inputReportCharacteristic->getValueHandle(), inputReportMouseData, 4);
+    ble.gattServer().write(mouseInputReportCharacteristic->getValueHandle(), inputReportData, 4);
 }
