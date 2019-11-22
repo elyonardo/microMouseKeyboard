@@ -244,15 +244,15 @@ class BluetoothServices
 
   private:
     BLEDevice &ble;
-    bool keyConnected;
-    bool mouseConnected;
+    bool connected;
+    //bool mouseConnected;
 
     Ticker reportTicker;
-    bool keyReportTickerIsActive;
-    bool mouseReportTickerIsActive;
+    //bool keyReportTickerIsActive;
+    bool reportTickerIsActive;
 
-    uint8_t keyProtocolMode;
-    uint8_t mouseProtocolMode;
+    uint8_t protocolMode;
+    //uint8_t mouseProtocolMode;
     uint8_t controlPointCommand;
     uint8_t inputReportData[8];
     //uint8_t inputReportMouseData[4];
@@ -265,42 +265,42 @@ class BluetoothServices
     uint8_t previousKeyCode;
     bool sendKeyUp = false;
 
-    void onKeyboardConnection(const Gap::ConnectionCallbackParams_t *params);
-    void onKeyboardDisconnection(const Gap::DisconnectionCallbackParams_t *params);
-    void onMouseConnection(const Gap::ConnectionCallbackParams_t *params);
-    void onMouseDisconnection(const Gap::DisconnectionCallbackParams_t *params);    
+    void onConnection(const Gap::ConnectionCallbackParams_t *params);
+    void onDisconnection(const Gap::DisconnectionCallbackParams_t *params);
+    //void onMouseConnection(const Gap::ConnectionCallbackParams_t *params);
+    //void onMouseDisconnection(const Gap::DisconnectionCallbackParams_t *params);    
 
-    GattCharacteristic *keyProtocolModeCharacteristic;
-    GattCharacteristic *mouseProtocolModeCharacteristic;
-    GattCharacteristic *keyInputReportCharacteristic;
-    GattCharacteristic *mouseInputReportCharacteristic;
-    GattCharacteristic *keyReportMapCharacteristic;
-    GattCharacteristic *mouseReportMapCharacteristic;
-    GattCharacteristic *keyHidInformationCharacteristic;
-    GattCharacteristic *mouseHidInformationCharacteristic;
-    GattCharacteristic *keyHidControlPointCharacteristic;
-    GattCharacteristic *mouseHidControlPointCharacteristic;
+    GattCharacteristic *protocolModeCharacteristic;
+    //GattCharacteristic *mouseProtocolModeCharacteristic;
+    GattCharacteristic *inputReportCharacteristic;
+    //GattCharacteristic *mouseInputReportCharacteristic;
+    GattCharacteristic *reportMapCharacteristic;
+    //GattCharacteristic *mouseReportMapCharacteristic;
+    GattCharacteristic *hidInformationCharacteristic;
+    //GattCharacteristic *mouseHidInformationCharacteristic;
+    GattCharacteristic *hidControlPointCharacteristic;
+    //GattCharacteristic *mouseHidControlPointCharacteristic;
 
     GattAttribute *inputReportReferenceDescriptor;
     GattAttribute *inputReportDescriptors[1];
 
-    void startKeyboardReportTicker();
-    void startMouseReportTicker();
+    void startReportTicker();
+    //void startMouseReportTicker();
     
-    void stopKeyboardReportTicker();
-    void stopMouseReportTicker();
+    void stopReportTicker();
+    //void stopMouseReportTicker();
     
-    void onKeyboardDataSent(unsigned count);
-    void onMouseDataSent(unsigned count);
+    void onDataSent(unsigned count);
+    //void onMouseDataSent(unsigned count);
     
-    void sendKeyboardCallback();
-    void sendMouseCallback();
+    void sendCallback();
+    //void sendMouseCallback();
     
     void startAdvertise();
     //void startMouseAdvertise();
     
-    void startKeyboardService();
-    void startMouseService();
+    void startService();
+    //void startMouseService();
 };
 
 #endif /* __BLESERVICES_H__ */
