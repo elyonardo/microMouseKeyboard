@@ -1,11 +1,12 @@
 namespace bluetooth {
     /**
-     * Starts the Keyboard service over Bluetooth and registers it as the Keyboard transport.
+     * Starts the Keyboard an Mouse service over Bluetooth and registers it as the Keyboard transport.
      */
     //% blockId="bluetooth_start_keyboard"
     //% block="bluetooth start keyboard service"
     //% parts="bluetooth"
-    export function startKeyboardService() {
+    export function startService() {
+        bluetooth.setMouseSpeed(0, 0, 0);
         function send(text: string) {
             bluetooth.keyboardSendText(text);
         }
@@ -74,9 +75,9 @@ namespace bluetooth {
     //% blockId="bluetooth_start_mouse"
     //% block="bluetooth start mouse service"
     //% parts="bluetooth"
-    export function startMouseService() {
+    /*export function startMouseService() {
         bluetooth.setMouseSpeed(0, 0, 0);
-    }
+    }*/
 
     /**
      * Sets a Mouse speed
