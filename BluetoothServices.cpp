@@ -80,23 +80,15 @@ static const uint8_t REPORT_MAP[] = {
     END_COLLECTION(0),
 };
 
-static const uint8_t KeyEmptyInputReportData[] = {0, 0, 0, 0, 0, 0, 0, 0};
-static const uint8_t MouseEmptyInputReportData[] = {0, 0, 0, 0};
+static const uint8_t emptyInputReportData[] = {0, 0, 0, 0, 0, 0, 0, 0};
+//static const uint8_t MouseEmptyInputReportData[] = {0, 0, 0, 0};
 }
 
 /**
  * Constructor
  * @param dev BLE device
  */
-BluetoothServices::BluetoothServices(BLEDevice *dev) : ble(*dev)
-{
-    startKeyboardService();
-    //startKeyboardAdvertise();
-    startMouseService();
-    startAdvertise();
-}
-
-void BluetoothServices::startKeyboardService()
+void BluetoothServices::startService()
 {
     memset(inputReportData, 0, sizeof(inputReportData));
     connected = false;
@@ -221,7 +213,7 @@ void BluetoothServices::onConnection(const Gap::ConnectionCallbackParams_t *para
 
 void BluetoothServices::onDisconnection(const Gap::DisconnectionCallbackParams_t *params)
 {
-    keyConnected = false;
+    connected = false;
     stopReportTicker();
     startAdvertise();
 }
@@ -458,16 +450,16 @@ uint8_t BluetoothServices::getKeyCode(uint8_t character)
  */
 void BluetoothServices::sendKeyDownMessage(Modifier modifier, uint8_t keyCode)
 {
-    if (keyConnected)
+    if (connected)
     {
         inputReportData[0] = modifier;
         inputReportData[1] = 0;
         inputReportData[2] = keyCode;
-        inputReportData[3] = 0;
+        /*inputReportData[3] = 0;
         inputReportData[4] = 0;
         inputReportData[5] = 0;
         inputReportData[6] = 0;
-        inputReportData[7] = 0;
+        inputReportData[7] = 0;*/
 
         ble.gattServer().write(keyInputReportCharacteristic->getValueHandle(), inputReportData, 8);
     }
@@ -478,50 +470,74 @@ void BluetoothServices::sendKeyDownMessage(Modifier modifier, uint8_t keyCode)
  */
 void BluetoothServices::sendKeyUpMessage()
 {
-    if (keyConnected)
+    if (connected)
     {
-        ble.gattServer().write(keyInputReportCharacteristic->getValueHandle(), KeyEmptyInputReportData, 8);
+        ble.gattServer().write(keyInputReportCharacteristic->getValueHandle(), emptyInputReportData, 8);
     }
 }
 
 void BluetoothServices::sendCallback()
 {
-    if (connected)
+	if(!connected)
+	{
+		return;
+	}
+
+    int16_t length = keyBuffer.length();
+
+    if (length > 0)
     {
-        int16_t length = keyBuffer.length();
-
-        if (length > 0)
-        {
-            uint8_t charAt = keyBuffer.charAt(0);
-            Modifier modifier = getModifier(charAt);
-            uint8_t keyCode = getKeyCode(charAt);
-            if (previousModifier == modifier && previousKeyCode == keyCode)
-            {
-                sendKeyUpMessage();
-                previousModifier = MODIFIER_NONE;
-                previousKeyCode = 0;
-                return;
-            }
-
-            sendKeyDownMessage(modifier, keyCode);
-            previousModifier = modifier;
-            previousKeyCode = keyCode;
-            // uBit.display.printChar((char)charAt);
-
-            keyBuffer = keyBuffer.substring(1, length - 1);
-            if (keyBuffer.length() == 0)
-            {
-                // last key sent, then send key-up message
-                sendKeyUp = true;
-            }
-        }
-        else if (sendKeyUp)
+        uint8_t charAt = keyBuffer.charAt(0);
+        Modifier modifier = getModifier(charAt);
+        uint8_t keyCode = getKeyCode(charAt);
+        if (previousModifier == modifier && 
+        	previousKeyCode == keyCode &&
         {
             sendKeyUpMessage();
-            sendKeyUp = false;
-            stopReportTicker();
+            previousModifier = MODIFIER_NONE;
+            previousKeyCode = 0;
+            //return;
+        }
+
+        sendKeyDownMessage(modifier, keyCode);
+        previousModifier = modifier;
+        previousKeyCode = keyCode;
+        // uBit.display.printChar((char)charAt);
+
+        keyBuffer = keyBuffer.substring(1, length - 1);
+        if (keyBuffer.length() == 0)
+        {
+            // last key sent, then send key-up message
+            sendKeyUp = true;
         }
     }
+    else if (sendKeyUp)
+    {
+        sendKeyUpMessage();
+        sendKeyUp = false;
+        stopReportTicker();
+    }
+
+    if (
+        inputReportData[4] == 0 &&
+        inputReportData[5] == 0 &&
+        inputReportData[6] == 0 &&
+        inputReportData[7] == 0 &&
+        (buttonsState & 0x7) == 0 &&
+        speed[0] == 0 &&
+        speed[1] == 0 &&
+        speed[2] == 0)
+    {
+        stopReportTicker();
+        return;
+    }
+
+    inputReportData[4] = buttonsState & 0x7;
+    inputReportData[5] = speed[0];
+    inputReportData[6] = speed[1];
+    inputReportData[7] = speed[2];
+
+    ble.gattServer().write(inputReportCharacteristic->getValueHandle(), inputReportData, 8);
 }
 
 /**
@@ -551,151 +567,14 @@ void BluetoothServices::sendKeyCode(Modifier modifier, uint8_t keyCode)
         sendKeyUp = true;
     }
 }
-
-/*----------------------------------------------------MOUSE---------------------------------------------*/
-/*void BluetoothServices::startMouseService()
-{
-    memset(inputReportData, 0, 4); //sizeof(inputReportData)
-    mouseConnected = false;
-    mouseProtocolMode = REPORT_PROTOCOL;
-    mouseReportTickerIsActive = false;
-
-    mouseProtocolModeCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_PROTOCOL_MODE_CHAR,
-                                                        &mouseProtocolMode, 1, 1,
-                                                        GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
-
-    mouseInputReportCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_CHAR,
-                                                       inputReportData, sizeof(inputReportData), sizeof(inputReportData),
-                                                       GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ |
-                                                           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY |
-                                                           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE);
-
-    mouseReportMapCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_REPORT_MAP_CHAR,
-                                                     const_cast<uint8_t *>(REPORT_MAP), sizeof(REPORT_MAP), sizeof(REPORT_MAP),
-                                                     GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
-
-    mouseHidInformationCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_INFORMATION_CHAR,
-                                                          const_cast<uint8_t *>(RESPONSE_HID_INFORMATION), sizeof(RESPONSE_HID_INFORMATION), sizeof(RESPONSE_HID_INFORMATION),
-                                                          GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
-
-    mouseHidControlPointCharacteristic = new GattCharacteristic(GattCharacteristic::UUID_HID_CONTROL_POINT_CHAR,
-                                                           &controlPointCommand, 1, 1,
-                                                           GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE);
-
-    SecurityManager::SecurityMode_t mouseSecurityMode = SecurityManager::SECURITY_MODE_ENCRYPTION_NO_MITM;
-    mouseProtocolModeCharacteristic->requireSecurity(mouseSecurityMode);
-    mouseInputReportCharacteristic->requireSecurity(mouseSecurityMode);
-    mouseReportMapCharacteristic->requireSecurity(mouseSecurityMode);
-    mouseHidInformationCharacteristic->requireSecurity(mouseSecurityMode);
-    mouseHidControlPointCharacteristic->requireSecurity(mouseSecurityMode);
-
-    GattCharacteristic *mouseCharacteristics[]{
-        mouseHidInformationCharacteristic,
-        mouseReportMapCharacteristic,
-        mouseProtocolModeCharacteristic,
-        mouseHidControlPointCharacteristic,
-        mouseInputReportCharacteristic};
-
-    ble.gap().onConnection(this, &BluetoothServices::onMouseConnection);
-    ble.gap().onDisconnection(this, &BluetoothServices::onMouseDisconnection);
-
-    GattService mouseService(GattService::UUID_HUMAN_INTERFACE_DEVICE_SERVICE, mouseCharacteristics, sizeof(mouseCharacteristics) / sizeof(GattCharacteristic *));
-
-    ble.gattServer().addService(mouseService);
-
-    ble.gattServer().onDataSent(this, &BluetoothServices::onMouseDataSent);
-}
-
-void BluetoothServices::startMouseAdvertise()
-{
-    ble.gap().stopAdvertising();
-    ble.gap().clearAdvertisingPayload();
-
-    ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::BREDR_NOT_SUPPORTED |
-                                           GapAdvertisingData::LE_GENERAL_DISCOVERABLE);
-
-    ManagedString BLEName("BBC micro:bit");
-    ManagedString namePrefix(" [");
-    ManagedString namePostfix("]");
-    BLEName = BLEName + namePrefix + uBit.getName() + namePostfix;
-
-    ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LOCAL_NAME,
-                                           (uint8_t *)BLEName.toCharArray(), BLEName.length());
-
-    ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS,
-                                           (uint8_t *)uuid16_list, sizeof(uuid16_list));
-
-    ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::MOUSE);
-
-    uint16_t minInterval = Gap::MSEC_TO_GAP_DURATION_UNITS(25);
-    if (minInterval < 6)
-    {
-        minInterval = 6;
-    }
-    uint16_t maxInterval = minInterval * 2;
-    Gap::ConnectionParams_t params = {minInterval, maxInterval, 0, 3200}; // timeout in 32 seconds
-    ble.gap().setPreferredConnectionParams(&params);
-
-    ble.gap().setAdvertisingType(GapAdvertisingParams::ADV_CONNECTABLE_UNDIRECTED);
-    ble.gap().setAdvertisingInterval(50);
-    ble.gap().setAdvertisingPolicyMode(Gap::ADV_POLICY_IGNORE_WHITELIST);
-    ble.gap().startAdvertising();
-}
-
-void BluetoothServices::startMouseReportTicker()
-{
-    if (mouseReportTickerIsActive)
-    {
-        return;
-    }
-    reportTicker.attach_us(this, &BluetoothServices::sendMouseCallback, 24000);
-    mouseReportTickerIsActive = true;
-}
-
-void BluetoothServices::stopMouseReportTicker()
-{
-    if (!mouseReportTickerIsActive)
-    {
-        return;
-    }
-    reportTicker.detach();
-    mouseReportTickerIsActive = false;
-}
-
-void BluetoothServices::onMouseDataSent(unsigned count)
-{
-    startMouseReportTicker();
-}
-
-void BluetoothServices::onMouseConnection(const Gap::ConnectionCallbackParams_t *params)
-{
-    ble.gap().stopAdvertising();
-    mouseConnected = true;
-}
-
-void BluetoothServices::onMouseDisconnection(const Gap::DisconnectionCallbackParams_t *params)
-{
-    mouseConnected = false;
-    stopMouseReportTicker();
-    startAdvertise();
-}*/
-
-/**
- * Set X, Y, wheel speed of the mouse. Parameters are sticky and will be
- * transmitted on every tick. Users should therefore reset them to 0 when
- * the device is immobile.
- *
- * @param x Speed on horizontal axis [-127, 127]
- * @param y Speed on vertical axis [-127, 127]
- * @param wheel Scroll speed [-127, 127]
- */
+            
 void BluetoothServices::setSpeed(int8_t x, int8_t y, int8_t wheel)
 {
     speed[0] = x;
     speed[1] = y;
     speed[2] = wheel;
 
-    startMouseReportTicker();
+    startReportTicker();
 }
 
 /**
@@ -712,34 +591,5 @@ void BluetoothServices::setButton(MouseButton button, ButtonState state)
         buttonsState |= button;
     }
 
-    startMouseReportTicker();
-}
-
-void BluetoothServices::sendMouseCallback()
-{
-    if (!mouseConnected)
-    {
-        return;
-    }
-
-    if (
-        inputReportData[0] == 0 &&
-        inputReportData[1] == 0 &&
-        inputReportData[2] == 0 &&
-        inputReportData[3] == 0 &&
-        (buttonsState & 0x7) == 0 &&
-        speed[0] == 0 &&
-        speed[1] == 0 &&
-        speed[2] == 0)
-    {
-        stopMouseReportTicker();
-        return;
-    }
-
-    inputReportData[0] = buttonsState & 0x7;
-    inputReportData[1] = speed[0];
-    inputReportData[2] = speed[1];
-    inputReportData[3] = speed[2];
-
-    ble.gattServer().write(mouseInputReportCharacteristic->getValueHandle(), inputReportData, 4);
+    startReportTicker();
 }
