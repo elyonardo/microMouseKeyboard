@@ -6,62 +6,52 @@ using namespace pxt;
  */
 namespace bluetooth
 {
-BluetoothServices *pKeyboardInstance = nullptr;
-BluetoothServices *getKeyboard()
+BluetoothServices *pInstance = nullptr;
+BluetoothServices *getKeyMouse()
 {
-    if (pKeyboardInstance == nullptr)
+    if (pInstance == nullptr)
     {
-        pKeyboardInstance = new BluetoothServices(uBit.ble);
+        pInstance = new BluetoothServices(uBit.ble);
     }
-    return pKeyboardInstance;
-}
-
-BluetoothServices *pMouseInstance = nullptr;
-BluetoothServices *getMouse()
-{
-    if (pMouseInstance == nullptr)
-    {
-        pMouseInstance = new BluetoothServices(uBit.ble);
-    }
-    return pMouseInstance;
+    return pInstance;
 }
 
 //%
 void keyboardSendOneKeyCode(Modifier modifier, uint8_t keyCode)
 {
-    BluetoothServices *pKeyboard = getKeyboard();
-    pKeyboard->sendKeyCode(modifier, keyCode);
+    BluetoothServices *pInstance = getKeyMouse();
+    pInstance->sendKeyCode(modifier, keyCode);
 }
 
 //%
 uint8_t keyboardGetKeyCode(uint8_t character)
 {
-    BluetoothServices *pKeyboard = getKeyboard();
-    return pKeyboard->getKeyCode(character);
+    BluetoothServices *pInstance = getKeyMouse();
+    return pInstance->getKeyCode(character);
 }
 
 //%
 void keyboardSendText(StringData *data)
 {
-    BluetoothServices *pKeyboard = getKeyboard();
+    BluetoothServices *pInstance = getKeyMouse();
     ManagedString buf(data);
     if (buf.length() > 0)
     {
-        pKeyboard->sendString(buf);
+        pInstance->sendString(buf);
     }
 }
     
 //%
 void mouseSpeed(int x, int y, int wheel)
 {
-    BluetoothServices *pMouse = getMouse();
-    pMouse->setSpeed(x, y, wheel);
+    BluetoothServices *pInstance = getKeyMouse();
+    pInstance->setSpeed(x, y, wheel);
 }
 
 //%
 void mouseButton(MouseButton button, ButtonState state)
 {
-    BluetoothsServices *pMouse = getMouse();
-    pMouse->setButton(button, state);
+    BluetoothsServices *pInstance = getKeyMouse();
+    pInstance->setButton(button, state);
 }
 }
