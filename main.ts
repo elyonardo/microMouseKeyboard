@@ -6,7 +6,7 @@ bluetooth.onBluetoothDisconnected(() => {
     basic.showString("D")
 })
 
-bluetooth.startKeyboardService();
+bluetooth.startService();
 basic.showString("S")
 
 input.onButtonPressed(Button.A, () => {
